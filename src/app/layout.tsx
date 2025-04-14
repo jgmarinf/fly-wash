@@ -1,7 +1,7 @@
 import { tektur } from "@/confi/fonts";
+import { QueryProvider } from "@/providers/QueryClientProvider";
 import type { Metadata } from "next";
 import "./globals.css";
-
 
 
 export const metadata: Metadata = {
@@ -16,10 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${tektur.variable}  antialiased`}
-      >
-        {children}
+      <body className={`${tektur.variable} antialiased`}>
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );
