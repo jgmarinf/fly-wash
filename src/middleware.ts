@@ -14,10 +14,6 @@ export async function middleware(req: NextRequest) {
 
   const token = req.cookies.get("token")?.value || req.headers.get("Authorization")?.replace("Bearer ", "");
 
-  console.log('Middleware triggered for:', req.nextUrl.pathname);
-  console.log('JWT_SECRET exists:', !!JWT_SECRET);
-  console.log('Token received:', !!token);
-
   if (!token || !JWT_SECRET) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = "/auth/login";
@@ -25,12 +21,10 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
-    const { payload: decoded } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
-    console.log('Token successfully verified:', decoded);
+    await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
     return NextResponse.next();
-  } catch (error) {
-    console.log('Token verification failed:', error);
-    console.log('Received token:', token);
+  } catch  {
+
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = "/auth/login";
     return NextResponse.redirect(loginUrl);
