@@ -24,4 +24,5 @@ export interface MachineProps {
   };
   // Include other props if Machine component needs them, like className
   className?: string;
+  thingName?: string;
 }
