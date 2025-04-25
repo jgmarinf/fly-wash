@@ -1,5 +1,5 @@
 // Define the structure for individual Bomba objects
-interface BombaData {
+export interface BombaData {
   TimeCycle?: string;
   isEnable?: string;
   CountSale?: string;
