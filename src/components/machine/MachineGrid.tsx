@@ -1,7 +1,7 @@
 "use client";
 
-
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query'; // Import useQuery
+import { useRouter } from 'next/navigation';
 import Machine from "./Machine";
 
 // Define an interface for the Thing object based on the expected response
@@ -13,52 +13,47 @@ interface Thing {
   thingTypeName?: string | null;
 }
 
+// Define the fetch function
+const fetchMachines = async (): Promise<Thing[]> => {
+  const res = await fetch('/api/machines');
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+  }
+  const data = await res.json();
+  return data || []; // Return empty array if data is null/undefined
+};
+
 const MachineGrid = () => {
-  const [things, setThings] = useState<Thing[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  useEffect(() => {
-    const fetchThings = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch('/api/machines');
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-        }
-        const data = await res.json();
-        setThings(data || []);
-      } catch (err) {
-        console.error("Error fetching machines from API:", err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch machines. Please check console for details.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Use TanStack Query
+  const { data: things, isLoading, error } = useQuery<Thing[], Error>({
+    queryKey: ['machines'], // Unique key for this query
+    queryFn: fetchMachines, // The function to fetch data
+  });
 
-    fetchThings();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen text-white">Loading machines...</div>;
   }
 
   if (error) {
-    return <div className="flex justify-center items-center min-h-screen text-red-500">Error: {error}</div>;
+    return <div className="flex justify-center items-center min-h-screen text-red-500">Error: {error.message}</div>;
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-blue-950 min-h-screen">
-      {things.length > 0 ? (
+      {things && things.length > 0 ? (
         things.map((thing) => (
-          // Assuming Machine component will need the thing details
-          // Pass the whole thing object or specific properties as needed
-          <Machine 
-            key={thing.thingName} 
-            thingName={thing.thingName} // Pass the thing object as a prop
-          />
+          <div
+            onClick={() => router.push(`/machine/${thing.thingName}`)} // Navigate on click
+            key={thing.thingName}
+            className="cursor-pointer" // Add cursor pointer for better UX
+          >
+            <Machine
+              thingName={thing.thingName} // Pass the thing object as a prop
+            />
+          </div>
         ))
       ) : (
         <div className="col-span-full text-center text-white">No machines found.</div>

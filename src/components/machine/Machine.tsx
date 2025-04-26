@@ -2,9 +2,8 @@
 
 "use client";
 
-
-import type { BombaData, MachineProps } from '@/interfaces/Machine'; // Assuming MachineProps is defined in interfaces
-import { useEffect, useState } from 'react';
+import type { BombaData, MachineProps } from '@/interfaces/Machine';
+import { useQuery } from '@tanstack/react-query'; // Import useQuery
 
 // Helper function to safely parse string to number
 const safeParseInt = (value: string | undefined, defaultValue = 0): number => {
@@ -13,46 +12,37 @@ const safeParseInt = (value: string | undefined, defaultValue = 0): number => {
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
+// Define the fetch function for a single machine's shadow
+const fetchMachineData = async (thingName: string): Promise<MachineProps> => {
+  const res = await fetch(`/api/machines/${thingName}/shadow`);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || `Failed to fetch shadow: ${res.statusText}`);
+  }
+  const data: MachineProps = await res.json();
+  return data;
+};
+
 const Machine = ({ thingName }: { thingName?: string }) => {
-  const [machineData, setMachineData] = useState<MachineProps | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!thingName) {
-      setError('Thing name is not provided.');
-      setLoading(false);
-      return;
-    }
+  // Use TanStack Query to fetch machine data
+  const { data: machineData, isLoading, error, isError } = useQuery<MachineProps, Error>({
+    queryKey: ['machine', thingName], // Unique key including the thingName
+    queryFn: () => fetchMachineData(thingName!), // Pass the fetch function
+    enabled: !!thingName, // Only run the query if thingName is provided
+  });
 
-    const fetchMachineData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`/api/machines/${thingName}/shadow`);
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || `Failed to fetch shadow: ${res.statusText}`);
-        }
-        const data: MachineProps = await res.json();
-        setMachineData(data);
-      } catch (err) {
-        console.error(`Error fetching shadow for ${thingName}:`, err);
-        setError(err instanceof Error ? err.message : 'Failed to load machine data.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Handle case where thingName is not provided early
+  if (!thingName) {
+    return <div className="bg-gray-800 text-red-500 p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col justify-center items-center font-mono border-2 border-red-700">Error: Thing name is not provided.</div>;
+  }
 
-    fetchMachineData();
-  }, [thingName]);
-
-  // Calculate derived values
+  // Calculate derived values (moved inside the component body)
   const reportedState = machineData?.state?.reported;
   const bombas = reportedState
     ? Object.entries(reportedState)
         .filter(([key, value]) => key.startsWith('Bomba_') && typeof value === 'object' && value !== null)
-        .map(([key, value]) => ({ key, ...(value as BombaData) })) // Type assertion
+        .map(([key, value]) => ({ key, ...(value as BombaData) }))
     : [];
 
   const ventas = bombas.reduce((sum, bomba) => {
@@ -66,20 +56,22 @@ const Machine = ({ thingName }: { thingName?: string }) => {
     return sum + countSale;
   }, 0);
 
-  // Use data from the first bomba for display, or defaults
   const firstBomba = bombas.length > 0 ? bombas[0] : null;
   const isEnabled = firstBomba?.isEnable === '1';
   const warnings = safeParseInt(firstBomba?.CountWarning);
-  const timeCycle = firstBomba?.TimeCycle ? `${firstBomba.TimeCycle}s` : 'N/A'; // Assuming TimeCycle is in seconds
+  const timeCycle = firstBomba?.TimeCycle ? `${firstBomba.TimeCycle}s` : 'N/A';
 
-  if (loading) {
+  // Use isLoading from useQuery
+  if (isLoading) {
     return <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex justify-center items-center font-mono border-2 border-gray-700">Loading...</div>;
   }
 
-  if (error) {
-    return <div className="bg-gray-800 text-red-500 p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col justify-center items-center font-mono border-2 border-red-700">Error: {error}</div>;
+  // Use error from useQuery
+  if (isError) {
+    return <div className="bg-gray-800 text-red-500 p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col justify-center items-center font-mono border-2 border-red-700">Error: {error?.message || 'Failed to load machine data.'}</div>;
   }
 
+  // Check if data is available after loading and no error
   if (!machineData) {
      return <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex justify-center items-center font-mono border-2 border-gray-700">No data available.</div>;
   }
@@ -89,10 +81,10 @@ const Machine = ({ thingName }: { thingName?: string }) => {
       {/* LCD Screen */}
       <div className="bg-green-900 border border-green-700 rounded p-3 mb-4 w-full text-sm">
         <div className="flex justify-between mb-1">
-          <span>Ventas: {ventas}</span>
-        </div>
-        <div className="text-center text-3xl font-bold my-2">
           {timeCycle}
+        </div>
+        <div className="text-center text-2xl font-bold my-2">
+          <span>Ventas: {ventas}</span>
         </div>
         <div className="flex justify-between">
           <span>Registros: {registros}</span>
