@@ -12,45 +12,60 @@ const safeParseInt = (value: string | undefined, defaultValue = 0): number => {
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
-// Define the fetch function for a single machine's shadow
-const fetchMachineData = async (thingName: string): Promise<MachineProps> => {
-  const res = await fetch(`/api/machines/${thingName}/shadow`);
+// Define the fetch function for a single machine's shadow (used internally if props not provided)
+const fetchMachineDetail = async (thingName: string): Promise<MachineProps> => {
+  const res = await fetch(`/api/machines/${thingName}/shadow`); // Assuming shadow endpoint
   if (!res.ok) {
-    const errorData = await res.json();
-    // Throwing an error here will be caught by the nearest ErrorBoundary or Suspense error handling
-    throw new Error(errorData.error || `Failed to fetch shadow: ${res.statusText}`);
+    let errorMsg = `HTTP error! status: ${res.status}`;
+    try {
+      const errorData = await res.json();
+      errorMsg = errorData.error || errorMsg;
+    } catch {
+      // Ignore if response is not JSON
+    }
+    throw new Error(errorMsg);
   }
-  const data: MachineProps = await res.json();
-  if (!data) {
-    // Handle cases where the API returns ok but no data, maybe throw specific error
+  const data = await res.json();
+  // Adjust based on actual API response structure if needed
+  if (!data) { 
     throw new Error('No data received from API.');
   }
-  return data;
+  return data; // Assuming the API directly returns MachineProps structure
 };
 
-const Machine = ({ thingName }: { thingName?: string }) => {
+const Machine = ({ thingName, machineData: propMachineData }: { thingName?: string, machineData?: MachineProps }) => {
 
-  // Use TanStack Query to fetch machine data.
-  // Call the hook unconditionally at the top level.
-  const { data: machineData } = useQuery<MachineProps, Error>({
-    queryKey: ['machine', thingName], // Unique key including the thingName
-    queryFn: () => fetchMachineData(thingName!), // Pass the fetch function, assert thingName exists due to enabled flag
-    enabled: !!thingName, // Ensure query runs only when thingName is valid. This handles the conditional logic.
-    // suspense: true, // Explicitly enable suspense if needed (usually default in v5+)
-    staleTime: 5 * 60 * 1000, // Example: 5 minutes stale time
+  // Fetch machine data internally if not provided via props
+  const { data: fetchedMachineData, isLoading, isError, error } = useQuery<MachineProps, Error>({
+    queryKey: ['machineDetail', thingName], // Unique key including the thingName
+    queryFn: () => fetchMachineDetail(thingName!), // Pass the thingName to the fetch function
+    enabled: !propMachineData && !!thingName, // Only run the query if propMachineData is NOT provided AND thingName IS
+    retry: 1, // Optional: Limit retries on error
   });
 
-  // Handle case where thingName is not provided early
-  // This check remains, but after the hook call.
+  // Determine the source of truth for data
+  const machineData = propMachineData || fetchedMachineData;
+  const isCurrentlyLoading = !propMachineData && isLoading;
+  const currentError = !propMachineData ? error : null; // Only consider internal fetch error if props aren't used
+
+  // Handle essential missing data or loading/error states
   if (!thingName) {
-    // Consider a more specific error display or null render
-    return <div className="bg-gray-800 text-red-500 p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col justify-center items-center font-mono border-2 border-red-700">Error: Thing name is not provided.</div>;
+    return <div className="bg-gray-800 text-red-500 p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col justify-center items-center font-mono border-2 border-red-700">Error: Thing name is missing.</div>;
+  }
+  if (isCurrentlyLoading) {
+    // Loading state specifically for when fetching internally
+    return <div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col justify-center items-center font-mono border-2 border-gray-700 animate-pulse">Loading data...</div>;
+  }
+  if (isError && currentError) {
+    // Error state specifically for when fetching internally
+    return <div className="bg-gray-800 text-red-500 p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col justify-center items-center font-mono border-2 border-red-700">Error: {currentError.message}</div>;
+  }
+  if (!machineData) {
+    // This case handles if props weren't passed AND internal fetch hasn't completed/succeeded yet, or failed silently
+    return <div className="bg-gray-800 text-gray-400 p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col justify-center items-center font-mono border-2 border-gray-700">Machine data not available...</div>;
   }
 
-  // Loading and error states are now handled by Suspense boundary in the parent component.
-  // The component will only render when data is successfully fetched.
-
-  // Calculate derived values (moved inside the component body)
+  // Calculate derived values using the determined machineData
   const reportedState = machineData?.state?.reported;
   const bombas = reportedState
     ? Object.entries(reportedState)
@@ -74,17 +89,10 @@ const Machine = ({ thingName }: { thingName?: string }) => {
   const warnings = safeParseInt(firstBomba?.CountWarning);
   const timeCycle = firstBomba?.TimeCycle ? `${firstBomba.TimeCycle}s` : 'N/A';
 
-  // Removed isLoading and isError checks as Suspense handles them.
 
-  // The component now assumes machineData is available when rendering.
-  // A check for !machineData might still be useful for robustness if the API could return null/undefined successfully.
-  // However, fetchMachineData now throws an error if data is null, so this check is less critical.
-  // if (!machineData) {
-  //    return <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex justify-center items-center font-mono border-2 border-gray-700">No data available.</div>;
-  // }
 
   return (
-    <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-64 h-[405px] mx-auto flex flex-col items-center font-mono border-2 border-gray-700 hover:shadow-blue-900">
+    <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-64 mx-auto flex flex-col items-center font-mono border-2 border-gray-700 hover:shadow-blue-900">
       {/* LCD Screen */}
       <div className="bg-green-900 border border-green-700 rounded p-3 mb-4 w-full text-sm">
         <div className="flex justify-between mb-1">
