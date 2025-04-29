@@ -1,6 +1,7 @@
 "use client";
 
 import type { BombaData, MachineProps } from '@/interfaces/Machine';
+import * as XLSX from 'xlsx'; // Import the xlsx library
 
 // Helper function to safely parse string to number
 const safeParseInt = (value: string | undefined, defaultValue = 0): number => {
@@ -35,12 +36,65 @@ const MachineTab = ({ machineData }: MachineTabProps) => {
     return <div className="text-white p-4">No hay datos de bombas disponibles.</div>;
   }
 
+  // Function to handle the download (moved inside the component)
+  const handleDownload = () => {
+    const reportedState = machineData?.state?.reported;
+    const bombas = reportedState
+      ? Object.entries(reportedState)
+          .filter(([key, value]) => key.startsWith('Bomba_') && typeof value === 'object' && value !== null)
+          .sort(([keyA], [keyB]) => { // Sort bombas numerically by their index
+            const indexA = parseInt(keyA.split('_')[1] || '0', 10);
+            const indexB = parseInt(keyB.split('_')[1] || '0', 10);
+            return indexA - indexB;
+          })
+          .map(([key, value]) => ({ key, ...(value as BombaData) }))
+      : [];
+
+    if (bombas.length === 0) {
+      alert("No hay datos para descargar.");
+      return;
+    }
+
+    // Prepare data for Excel sheet
+    const dataForSheet = [
+      ["BOMBA NAME", "TIEMPO", "COSTO ($)", "CANTIDAD PRODUCTO", "# VENTAS", "VENTAS ($)"], // Header row
+      ...bombas.map((bomba, index) => {
+        const tiempo = bomba.TimeCycle || 'N/A';
+        const costo = safeParseInt(bomba.CreditCost);
+        const cantidad = safeParseInt(bomba.CountLimit);
+        const numVentas = safeParseInt(bomba.CountSale);
+        const ventasTotal = numVentas * costo;
+        return [
+          `Bomba ${index + 1}`,
+          tiempo,
+          costo, // Keep as number for potential calculations in Excel
+          cantidad,
+          numVentas,
+          ventasTotal // Keep as number
+        ];
+      })
+    ];
+
+    // Create worksheet and workbook
+    const ws = XLSX.utils.aoa_to_sheet(dataForSheet);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Estado Maquina");
+
+    // Format date for filename
+    const today = new Date();
+    const dateString = today.toISOString().split('T')[0]; // YYYY-MM-DD
+    const fileName = `machine_state_${machineData.thingName || 'unknown'}_${dateString}.xlsx`; // Include thingName if available
+
+    // Trigger download
+    XLSX.writeFile(wb, fileName);
+  };
+
   return (
     <div className="bg-gray-900 p-4 rounded-lg shadow-lg w-full max-w-3xl font-mono text-sm">
       <table className="w-full border-collapse">
         <thead>
           <tr className="text-center ">
-            <th className="p-2 bg-cyan-800 rounded-lg text-white">BOMBA NAME</th> {/* Empty header for Bomba name column */} 
+            <th className="p-2 bg-cyan-800 rounded-lg text-white">BOMBA NAME</th>  
             <th className="p-2 bg-purple-700 rounded-lg text-white">TIEMPO</th>
             <th className="p-2 bg-yellow-700 rounded-lg text-white">COSTO</th>
             <th className="p-2 bg-gray-500 rounded-lg text-white">CANTIDAD PRODUCTO</th>
@@ -69,6 +123,14 @@ const MachineTab = ({ machineData }: MachineTabProps) => {
           })}
         </tbody>
       </table>
+      <div className="mt-4 text-center">
+        <button 
+          onClick={handleDownload}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 active:bg-blue-800"
+        >
+          Descargar Estado
+        </button>
+      </div>
     </div>
   );
 };
