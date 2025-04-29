@@ -86,8 +86,11 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
 
   const firstBomba = bombas.length > 0 ? bombas[0] : null;
   const isEnabled = firstBomba?.isEnable === '1';
-  const warnings = safeParseInt(firstBomba?.CountWarning);
-  const timeCycle = firstBomba?.TimeCycle ? `${firstBomba.TimeCycle}s` : 'N/A';
+  
+  // Check if any bomba needs a warning
+  const showWarningBell = bombas.some(bomba => 
+    safeParseInt(bomba.CountLimit) <= safeParseInt(bomba.CountWarning)
+  );
 
 
 
@@ -95,9 +98,7 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
     <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-64 mx-auto flex flex-col items-center font-mono border-2 border-gray-700 hover:shadow-blue-900">
       {/* LCD Screen */}
       <div className="bg-green-900 border border-green-700 rounded p-3 mb-4 w-full text-sm">
-        <div className="flex justify-between mb-1">
-          {timeCycle}
-        </div>
+        
         <div className="text-center text-2xl font-bold my-2">
           <span>Ventas: ${ventas}</span>
         </div>
@@ -113,8 +114,10 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
           <span>{isEnabled ? 'Habilitada' : 'Deshabilitada'}</span>
         </div>
         <div className="flex items-center">
-          <span className="text-yellow-500">🔔</span>
-          <span className="ml-1">{warnings}</span>
+          {/* Conditionally render the warning bell */}
+          {showWarningBell && (
+            <span className="text-yellow-500">🔔</span>
+          )}
         </div>
       </div>
 
