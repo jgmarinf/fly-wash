@@ -55,7 +55,7 @@ const MachineDetailPage = () => {
         {machineData && id && (
           <>
             <Machine thingName={id} machineData={machineData} />
-            <MachineTab machineData={machineData} />
+            <MachineTab machineData={machineData} thingName={id} />
           </>
         )}
       </div>
