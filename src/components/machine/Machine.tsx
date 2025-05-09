@@ -87,7 +87,7 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
   
   // Check if any bomba needs a warning
   const showWarningBell = bombas.some(bomba => 
-    safeParseInt(bomba.CountLimit) <= safeParseInt(bomba.CountWarning)
+    safeParseInt(bomba.CountSale) >= safeParseInt(bomba.CountWarning)
   );
 
 
