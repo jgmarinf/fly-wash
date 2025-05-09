@@ -73,7 +73,7 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
     setIsEditing(!isEditing);
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const changes: ChangesPayload = {};
     const originalReported = machineData?.state?.reported || {}; // Estructura: { "Bomba_1": {TimeCycle:"...", ...} }
 
@@ -119,11 +119,31 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
     });
 
     if (Object.keys(changes).length > 0) {
-      console.log( changes);
+      try {
+        const response = await fetch('/api/upDateMachine', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ thingName, changes }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error en la solicitud');
+        }
+
+        const result = await response.json();
+        console.log('Actualización exitosa:', result);
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Error al enviar cambios');
+      } finally {
+        setIsEditing(false);
+      }
     } else {
       console.log("No se detectaron cambios para enviar.");
+      setIsEditing(false);
     }
-    setIsEditing(false);
   };
 
   // 'field' aquí se refiere a una clave de ShadowBombaFields, que son los datos modificables.
