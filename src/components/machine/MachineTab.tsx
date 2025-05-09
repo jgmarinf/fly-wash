@@ -161,10 +161,9 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
   };
 
   return (
-    <div className="bg-gray-900 p-4 rounded-lg shadow-lg w-full max-w-3xl font-mono text-sm">
-      <table className="w-full border-collapse">
+    <div className="bg-gray-900 p-4 rounded-lg shadow-lg max-w-[90%] w-full mx-auto overflow-x-auto font-mono text-sm">
+      <table className="min-w-[700px] w-full border-collapse">
         <thead>
-          {/* ... Encabezados de la tabla ... */}
           <tr className="text-center ">
             <th className="p-2 bg-cyan-800 rounded-lg text-white">BOMBA NAME</th>
             <th className="p-2 bg-purple-700 rounded-lg text-white">TIEMPO</th>

@@ -44,7 +44,7 @@ const MachineDetailPage = () => {
   return (
     <div className="flex flex-col items-center gap-4 p-4 w-full min-h-screen bg-blue-950 overflow-auto"> {/* Added flex-col, items-center, padding, background */}
       <ButtonDashboard/>
-      <div className="flex flex-col md:flex-row items-start justify-center gap-8 w-full max-w-4xl mx-auto"> {/* Adjusted layout for side-by-side */} 
+      <div className="flex flex-col md:flex-row items-start justify-center gap-8 w-full mx-auto"> {/* Adjusted layout for side-by-side */} 
         {isLoading && <div className="text-white text-center py-10">Loading machine details...</div>}
         {isError && <div className="text-red-500 text-center py-10">Error loading machine: {error?.message || 'Unknown error'}</div>}
         {!isLoading && !isError && !id && <div className="text-red-500 text-center py-10">Machine ID is missing from the URL.</div>}
