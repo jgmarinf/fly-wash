@@ -2,6 +2,7 @@
 
 import type { BombaData, MachineProps } from '@/interfaces/Machine';
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 
 // Helper function to safely parse string to number
 const safeParseInt = (value: string | undefined, defaultValue = 0): number => {
@@ -32,6 +33,8 @@ const fetchMachineDetail = async (thingName: string): Promise<MachineProps> => {
 };
 
 const Machine = ({ thingName, machineData: propMachineData }: { thingName?: string, machineData?: MachineProps }) => {
+  const params = useParams();
+  const id = params?.id as string;
 
   // Fetch machine data internally if not provided via props
   const { data: fetchedMachineData, isLoading, isError, error } = useQuery<MachineProps, Error>({
@@ -90,6 +93,34 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
     safeParseInt(bomba.CountSale) >= safeParseInt(bomba.CountWarning)
   );
 
+  const handleVentaRemota = async (bomba: BombaData & { key: string }) => {
+    if (id === thingName) {
+      const confirm = window.confirm("¿Seguro deseas hacer esta venta remota?");
+      if (confirm) {
+        try {
+          const response = await fetch('/api/ventaRemota', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              thingName: thingName,
+              bombaKey: bomba.key
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Error en la solicitud');
+          }
+          console.log("Venta remota exitosa");
+        } catch (err) {
+          console.error('Error:', err);
+          alert('Error al procesar la venta remota');
+        }
+      }
+    }
+  };
+
 
 
   return (
@@ -130,6 +161,7 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
           <button
             key={bomba.key} // Use the Bomba_X key
             className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-colors duration-200 active:bg-gray-700"
+            onClick={() => handleVentaRemota(bomba)}
           >
             {/* Display B1, B2 etc. from Bomba_1, Bomba_2 */}
             {`B${bomba.key.split('_')[1]}`}
