@@ -3,6 +3,7 @@
 import Machine from "@/components/machine/Machine";
 import MachineTab from "@/components/machine/MachineTab";
 import ButtonDashboard from "@/components/ui/ButtonDashboard";
+import ButtonSendMoney from "@/components/ui/ButtonSendMoney";
 import type { MachineProps } from '@/interfaces/Machine'; // Import the interface
 import { useQuery } from '@tanstack/react-query'; // Import useQuery
 import { useParams } from 'next/navigation'; // Import useParams
@@ -43,7 +44,10 @@ const MachineDetailPage = () => {
   
   return (
     <div className="flex flex-col items-center gap-4 p-4 w-full min-h-screen bg-blue-950 overflow-auto"> {/* Added flex-col, items-center, padding, background */}
+      <div className="flex justify-center gap-2 max-sm:flex-col">
       <ButtonDashboard/>
+      <ButtonSendMoney/>
+      </div>
       <div className="flex flex-col md:flex-row items-start justify-center gap-8 w-full mx-auto"> {/* Adjusted layout for side-by-side */} 
         {isLoading && <div className="text-white text-center py-10">Loading machine details...</div>}
         {isError && <div className="text-red-500 text-center py-10">Error loading machine: {error?.message || 'Unknown error'}</div>}
