@@ -165,12 +165,12 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
       <table className="min-w-[700px] w-full border-collapse">
         <thead>
           <tr className="text-center ">
-            <th className="p-2 bg-cyan-800 rounded-lg text-white">BOMBA NAME</th>
-            <th className="p-2 bg-purple-700 rounded-lg text-white">TIEMPO</th>
-            <th className="p-2 bg-yellow-700 rounded-lg text-white">COSTO</th>
-            <th className="p-2 bg-gray-500 rounded-lg text-white">CANTIDAD PRODUCTO</th>
-            <th className="p-2 bg-orange-600 rounded-lg text-white"># VENTAS</th>
-            <th className="p-2 bg-green-600 rounded-lg text-white">VENTAS</th>
+            <th className="p-2 bg-transparent rounded-lg text-white">BOMBA NAME</th>
+            <th className="p-2 bg-transparent rounded-lg text-white">TIEMPO</th>
+            <th className="p-2 bg-transparent rounded-lg text-white">COSTO</th>
+            <th className="p-2 bg-transparent rounded-lg text-white">CANT PRODUCT</th>
+            <th className="p-2 bg-transparent rounded-lg text-white"># VENTAS</th>
+            <th className="p-2 bg-transparent rounded-lg text-white">VENTAS</th>
           </tr>
         </thead>
         <tbody>
@@ -199,49 +199,49 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
                       placeholder="Tiempo"
                     />
                   ) : (
-                    <span className="bg-pink-500 text-white px-3 py-1 rounded-lg block">{tiempo}</span>
+                    <span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{tiempo}</span>
                   )}
                 </td>
                 <td className="p-2">
                   {isEditing ? (
                     <input
-                      type="number"
+                      type="text"
                       value={costoStr}
                       onChange={(e) => handleInputChange(bomba.key, 'CreditCost', e.target.value)}
                       className="bg-gray-700 text-white p-1 rounded w-full text-center"
                       placeholder="Costo"
                     />
                   ) : (
-                    <span className="bg-yellow-500 text-black px-3 py-1 rounded-lg block">{formatNumber(costo)} $</span>
+                    <span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{formatNumber(costo)} $</span>
                   )}
                 </td>
                 <td className="p-2">
                   {isEditing ? (
                     <input
-                      type="number"
+                      type="text"
                       value={cantidadStr}
                       onChange={(e) => handleInputChange(bomba.key, 'CountLimit', e.target.value)}
                       className="bg-gray-700 text-white p-1 rounded w-full text-center"
                       placeholder="Cantidad"
                     />
                   ) : (
-                    <span className="bg-gray-400 text-black px-3 py-1 rounded-lg block">{cantidad}</span>
+                    <span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{cantidad}</span>
                   )}
                 </td>
                 <td className="p-2">
                   {isEditing ? (
                     <input
-                      type="number"
+                      type="text"
                       value={numVentasStr}
                       onChange={(e) => handleInputChange(bomba.key, 'CountSale', e.target.value)}
                       className="bg-gray-700 text-white p-1 rounded w-full text-center"
                       placeholder="# Ventas"
                     />
                   ) : (
-                    <span className="bg-orange-400 text-black px-3 py-1 rounded-lg block">{numVentas}</span>
+                    <span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{numVentas}</span>
                   )}
                 </td>
-                <td className="p-2"><span className="bg-green-400 text-black px-3 py-1 rounded-lg block">{formatNumber(ventasTotal)} $</span></td>
+                <td className="p-2"><span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{formatNumber(ventasTotal)} $</span></td>
               </tr>
             );
           })}
