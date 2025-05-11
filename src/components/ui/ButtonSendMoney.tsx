@@ -11,13 +11,17 @@ const ButtonSendMoney = (thingName: ButtonSendMoneyProps) => {
   const handleSendMoney = async () => {
     if (!inputValue) {
       alert('No hay valor para enviar');
+      setInputValue('');
       return;
     }
 
     if (!/^\d+$/.test(inputValue)) {
       alert('El valor debe ser un número');
+      setInputValue('');
       return;
     }
+
+    alert(`Enviando ${inputValue} a la maquina`);
 
     try {
       await fetch('/api/sendMoney', {
@@ -29,6 +33,8 @@ const ButtonSendMoney = (thingName: ButtonSendMoneyProps) => {
       });
     } catch (error) {
       console.error('Error al enviar saldo:', error);
+    } finally {
+      setInputValue('');
     }
   };
 
