@@ -1,19 +1,54 @@
 "use client"
+import { useState } from 'react';
 
-const ButtonSendMoney = () => {
+interface ButtonSendMoneyProps {
+  thingName: string | undefined;
+}
+
+const ButtonSendMoney = (thingName: ButtonSendMoneyProps) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleSendMoney = async () => {
+    if (!inputValue) {
+      alert('No hay valor para enviar');
+      return;
+    }
+
+    if (!/^\d+$/.test(inputValue)) {
+      alert('El valor debe ser un número');
+      return;
+    }
+
+    try {
+      await fetch('/api/sendMoney', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inputValue, thingName }),
+      });
+    } catch (error) {
+      console.error('Error al enviar saldo:', error);
+    }
+  };
 
   return (
     <div className="flex justify-center gap-2 max-sm:flex-col">   
-        <input type="text" className="bg-gray-700 text-white h-10 rounded w-full text-center" placeholder="Cantidad" />
-        <button
-            onClick={() => {}} 
-            className="bg-green-600 hover:bg-green-700 text-white font-bold h-max w-full py-2 px-4 rounded self-start mb-4"
-        >
+      <input
+        type="text"
+        className="bg-gray-700 text-white h-10 rounded w-full text-center"
+        placeholder="Cantidad"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+      />
+      <button
+        onClick={handleSendMoney}
+        className="bg-green-600 hover:bg-green-700 text-white font-bold h-max w-full py-2 px-4 rounded self-start mb-4"
+      >
         Enviar Saldo
-        </button>
-
+      </button>
     </div>
-  )
-}
+  );
+};
 
-export default ButtonSendMoney
+export default ButtonSendMoney;

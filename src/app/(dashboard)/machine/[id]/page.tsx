@@ -46,7 +46,7 @@ const MachineDetailPage = () => {
     <div className="flex flex-col items-center gap-4 p-4 w-full min-h-screen bg-blue-950 overflow-auto"> {/* Added flex-col, items-center, padding, background */}
       <div className="flex justify-center gap-2 max-sm:flex-col">
       <ButtonDashboard/>
-      <ButtonSendMoney/>
+      <ButtonSendMoney thingName={id}/>
       </div>
       <div className="flex flex-col md:flex-row items-start justify-center gap-8 w-full mx-auto"> {/* Adjusted layout for side-by-side */} 
         {isLoading && <div className="text-white text-center py-10">Loading machine details...</div>}
