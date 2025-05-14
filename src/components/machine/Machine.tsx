@@ -94,7 +94,7 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
   );
 
   const handleVentaRemota = async (bomba: BombaData & { key: string }) => {
-    if (id === thingName) {
+    if (id === thingName && bomba.IsEnable === '1') {
       const confirm = window.confirm("¿Seguro deseas hacer esta venta remota?");
       if (confirm) {
         try {
@@ -163,7 +163,7 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
         {bombas.map((bomba) => (
           <button
             key={bomba.key} // Use the Bomba_X key
-            className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-colors duration-200 active:bg-gray-700"
+            className={`${bomba.IsEnable === "1" ? "bg-gray-600": "bg-red-500"} hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-colors duration-200 active:bg-gray-700`}
             onClick={() => handleVentaRemota(bomba)}
           >
             {/* Display B1, B2 etc. from Bomba_1, Bomba_2 */}
