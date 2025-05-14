@@ -85,8 +85,8 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
     return sum + countSale;
   }, 0);
 
-  const firstBomba = bombas.length > 0 ? bombas[0] : null;
-  const isEnabled = firstBomba?.IsEnable === '1';
+  const isEnabled = reportedState?.General?.Estado === '1';
+  const Saldo = reportedState?.General?.Saldo;
   
   // Check if any bomba needs a warning
   const showWarningBell = bombas.some(bomba => 
@@ -128,8 +128,11 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
       {/* LCD Screen */}
       <div className="bg-green-900 border border-green-700 rounded p-3 mb-4 w-full text-sm">
         
-        <div className="text-center text-2xl font-bold my-2">
+        <div className="text-center text-xl font-bold my-2">
           <span>Ventas: ${ventas}</span>
+        </div>
+        <div className="text-center text-xl font-bold my-2">
+          <span>Saldo: ${Saldo}</span>
         </div>
         <div className="flex justify-between">
           <span>Registros: {registros}</span>
