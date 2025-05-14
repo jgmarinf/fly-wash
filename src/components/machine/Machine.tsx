@@ -86,7 +86,7 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
   }, 0);
 
   const firstBomba = bombas.length > 0 ? bombas[0] : null;
-  const isEnabled = firstBomba?.isEnable === '1';
+  const isEnabled = firstBomba?.IsEnable === '1';
   
   // Check if any bomba needs a warning
   const showWarningBell = bombas.some(bomba => 

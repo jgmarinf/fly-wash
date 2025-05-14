@@ -6,18 +6,17 @@ import { fromEnv } from '@aws-sdk/credential-provider-env';
 
 export async function POST(request: Request) {
   try {
-    const { inputValue, thingName } = await request.json();
-
-    if (!inputValue || !thingName) {
-      return NextResponse.json(
-        { error: 'inputValue and thingName are required' },
-        { status: 400 }
-      );
+    const { thingName, inputValue } = await request.json();
+    
+    if (!thingName || !inputValue) {
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
+
+    console.log(thingName.thingName, "thingName");
 
     const region = process.env.AWS_REGION || 'us-west-2';
     const iotEndpoint = process.env.AWS_IOT_ENDPOINT;
-    const url = new URL(`https://${iotEndpoint}/topics/cmd/things/${thingName}/vending`);
+    const url = new URL(`https://${iotEndpoint}/topics/cmd/things/${thingName.thingName}/vending`);
 
     const credentials = await fromEnv()();
     const signer = new SignatureV4({
@@ -36,9 +35,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         host: url.hostname,
       },
-      body: JSON.stringify({
-        Saldo: inputValue.toString()
-      }),
+      body: JSON.stringify({Saldo: inputValue }),
     });
 
     const signedRequest = await signer.sign(httpRequest);
@@ -55,8 +52,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
 
   } catch (err) {
-    console.error('Send money error:', err);
-    const errorMessage = err instanceof Error ? err.message : 'Failed to process money transfer';
+    console.error('Venta remota error:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Failed to process remote sale';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
