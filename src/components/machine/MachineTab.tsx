@@ -169,7 +169,9 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
             <th className="p-2 bg-transparent rounded-lg text-white">TIEMPO</th>
             <th className="p-2 bg-transparent rounded-lg text-white">COSTO</th>
             <th className="p-2 bg-transparent rounded-lg text-white">CANT PRODUCT</th>
+            <th className="p-2 bg-transparent rounded-lg text-white">CONTADOR PRODUCT</th>
             <th className="p-2 bg-transparent rounded-lg text-white"># VENTAS</th>
+            <th className="p-2 bg-transparent rounded-lg text-white">COUNT WARNING</th>
             <th className="p-2 bg-transparent rounded-lg text-white">VENTAS</th>
           </tr>
         </thead>
@@ -180,11 +182,15 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
             const costoStr = currentEdit.CreditCost || '0';
             const cantidadStr = currentEdit.CountLimit || '0';
             const numVentasStr = currentEdit.CountSale || '0';
+            const recordCountStr = currentEdit.RecordCount || '0';
+            const countWarningStr = currentEdit.CountWarning || '0';
 
             const costo = safeParseInt(costoStr);
             const cantidad = safeParseInt(cantidadStr);
             const numVentas = safeParseInt(numVentasStr);
-            const ventasTotal = numVentas * costo;
+            const recordCount = safeParseInt(recordCountStr);
+            const countWarning = safeParseInt(countWarningStr);
+            const ventasTotal = recordCount * costo;
 
             return (
               <tr key={bomba.key} className="text-center">
@@ -239,6 +245,34 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
                     />
                   ) : (
                     <span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{numVentas}</span>
+                  )}
+                </td>
+                {/* RecordCount Field */}
+                <td className="p-2">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={recordCountStr}
+                      onChange={(e) => handleInputChange(bomba.key, 'RecordCount', e.target.value)}
+                      className="bg-gray-700 text-white p-1 rounded w-full text-center"
+                      placeholder="Record Count"
+                    />
+                  ) : (
+                    <span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{formatNumber(recordCount)}</span>
+                  )}
+                </td>
+                {/* CountWarning Field */}
+                <td className="p-2">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={countWarningStr}
+                      onChange={(e) => handleInputChange(bomba.key, 'CountWarning', e.target.value)}
+                      className="bg-gray-700 text-white p-1 rounded w-full text-center"
+                      placeholder="Count Warning"
+                    />
+                  ) : (
+                    <span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{formatNumber(countWarning)}</span>
                   )}
                 </td>
                 <td className="p-2"><span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{formatNumber(ventasTotal)} $</span></td>

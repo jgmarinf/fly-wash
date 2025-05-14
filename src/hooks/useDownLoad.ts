@@ -37,12 +37,14 @@ export const useDownload = (machineData: MachineProps | undefined, thingName: st
 
     // Prepare data for Excel sheet
     const dataForSheet = [
-      ["BOMBA NAME", "TIEMPO", "COSTO ($", "CANTIDAD PRODUCTO", "# VENTAS", "VENTAS ($"], // Header row
+      ["BOMBA NAME", "TIEMPO", "COSTO ($", "CANTIDAD PRODUCTO", "# VENTAS", "RECORD COUNT", "COUNT WARNING", "VENTAS ($"], // Header row
       ...bombas.map((bomba, index) => {
         const tiempo = bomba.TimeCycle || 'N/A';
         const costo = safeParseInt(bomba.CreditCost);
         const cantidad = safeParseInt(bomba.CountLimit);
         const numVentas = safeParseInt(bomba.CountSale);
+        const recordCount = safeParseInt(bomba.RecordCount);
+        const countWarning = safeParseInt(bomba.CountWarning);
         const ventasTotal = numVentas * costo;
         return [
           `Bomba ${index + 1}`,
@@ -50,6 +52,8 @@ export const useDownload = (machineData: MachineProps | undefined, thingName: st
           costo, // Keep as number for potential calculations in Excel
           cantidad,
           numVentas,
+          recordCount,
+          countWarning,
           ventasTotal // Keep as number
         ];
       })
