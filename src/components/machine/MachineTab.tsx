@@ -77,6 +77,18 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
     const changes: ChangesPayload = {};
     const originalReported = machineData?.state?.reported || {}; // Estructura: { "Bomba_1": {TimeCycle:"...", ...} }
 
+    // Validation for IsEnable
+    for (const bombaKey in editedData) {
+      const bomba = editedData[bombaKey];
+      // Check if IsEnable is defined in the edited data for this bomba
+      if (bomba.hasOwnProperty('IsEnable')) {
+        if (bomba.IsEnable !== '0' && bomba.IsEnable !== '1') {
+          alert(`Error: El valor para 'Estado (IsEnable)' en ${bombaKey.replace('_', ' ')} debe ser '0' (Deshabilitado) o '1' (Habilitado).`);
+          return; // Stop the process if validation fails
+        }
+      }
+    }
+
     Object.keys(editedData).forEach(bombaKey => { // bombaKey es "Bomba_1", "Bomba_2", etc.
       // originalFields es de tipo ShadowBombaFields (sin 'key' interna)
       const originalFields = originalReported[bombaKey] as ShadowBombaFields | undefined;
@@ -119,6 +131,7 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
     });
 
     if (Object.keys(changes).length > 0) {
+      console.log(changes, "cambios despachados")
       try {
         const response = await fetch('/api/upDateMachine', {
           method: 'POST',
@@ -173,6 +186,7 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
             <th className="p-2 bg-transparent rounded-lg text-white"># VENTAS</th>
             <th className="p-2 bg-transparent rounded-lg text-white">COUNT WARNING</th>
             <th className="p-2 bg-transparent rounded-lg text-white">VENTAS</th>
+            <th className="p-2 bg-transparent rounded-lg text-white">ESTADO</th>
           </tr>
         </thead>
         <tbody>
@@ -184,6 +198,7 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
             const numVentasStr = currentEdit.CountSale || '0';
             const recordCountStr = currentEdit.RecordCount || '0';
             const countWarningStr = currentEdit.CountWarning || '0';
+            const isEnableStr = currentEdit.IsEnable || '0'; // Default to '0' if undefined
 
             const costo = safeParseInt(costoStr);
             const cantidad = safeParseInt(cantidadStr);
@@ -276,6 +291,21 @@ const MachineTab = ({ machineData, thingName }: MachineTabProps) => {
                   )}
                 </td>
                 <td className="p-2"><span className="bg-gray-300 text-black px-3 py-1 rounded-lg block">{formatNumber(ventasTotal)} $</span></td>
+                <td className="p-2">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={isEnableStr}
+                      onChange={(e) => handleInputChange(bomba.key, 'IsEnable', e.target.value)}
+                      className="bg-gray-700 text-white p-1 rounded w-full text-center"
+                      placeholder="0 o 1"
+                    />
+                  ) : (
+                    <span className={`px-3 py-1 rounded-lg block ${isEnableStr === '1' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                      {isEnableStr === '1' ? 'Habilitado' : 'Deshabilitado'}
+                    </span>
+                  )}
+                </td>
               </tr>
             );
           })}
