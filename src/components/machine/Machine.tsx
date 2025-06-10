@@ -85,7 +85,19 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
     return sum + countSale;
   }, 0);
 
-  const isEnabled = reportedState?.General?.Estado === '1';
+  const estado = reportedState?.General?.Estado;
+  const status = (() => {
+    switch (estado) {
+      case '0':
+        return { label: 'Offline', color: 'bg-red-500' };
+      case '1':
+        return { label: 'Online', color: 'bg-green-500' };
+      case '2':
+        return { label: 'Vendiendo', color: 'bg-yellow-500' };
+      default:
+        return { label: 'Desconocido', color: 'bg-gray-500' };
+    }
+  })();
   const Saldo = reportedState?.General?.Saldo;
   
   // Check if any bomba needs a warning
@@ -142,8 +154,8 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
       {/* Status Indicators */}
       <div className="flex justify-between items-center w-full mb-4 px-2">
         <div className="flex items-center">
-          <span className={`h-3 w-3 rounded-full mr-2 ${isEnabled ? 'bg-green-500' : 'bg-red-500'}`}></span>
-          <span>{isEnabled ? 'Habilitada' : 'Deshabilitada'}</span>
+          <span className={`h-3 w-3 rounded-full mr-2 ${status.color}`}></span>
+          <span>{status.label}</span>
         </div>
         <div className="flex items-center">
           {/* Conditionally render the warning bell */}
