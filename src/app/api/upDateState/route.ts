@@ -8,13 +8,15 @@ export async function POST(request: Request) {
   try {
     const { thingName } = await request.json();
     
-    if (!thingName) {
-      return NextResponse.json({ error: 'Thing name is required' }, { status: 400 });
+    if (!thingName ) {
+      return NextResponse.json({ error: 'thingName is required' }, { status: 400 });
     }
+
+    console.log(thingName.thingName, "thingName");
 
     const region = process.env.AWS_REGION || 'us-west-2';
     const iotEndpoint = process.env.AWS_IOT_ENDPOINT;
-    const url = new URL(`https://${iotEndpoint}/topics/cmd/things/${thingName}/vending`);
+    const url = new URL(`https://${iotEndpoint}/topics/cmd/things/${thingName.thingName}/vending`);
 
     const credentials = await fromEnv()();
     const signer = new SignatureV4({
@@ -35,7 +37,6 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({"Update":"UpdTo"}),
     });
-    console.log(url)
 
     const signedRequest = await signer.sign(httpRequest);
     const response = await fetch(url.toString(), {
@@ -51,8 +52,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
 
   } catch (err) {
-    console.error('Update error:', err);
-    const errorMessage = err instanceof Error ? err.message : 'Failed to update machine';
+    console.error('Venta remota error:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Failed to process remote sale';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
