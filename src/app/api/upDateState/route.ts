@@ -12,8 +12,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'thingName is required' }, { status: 400 });
     }
 
-    console.log(thingName.thingName, "thingName");
-
     const region = process.env.AWS_REGION || 'us-west-2';
     const iotEndpoint = process.env.AWS_IOT_ENDPOINT;
     const url = new URL(`https://${iotEndpoint}/topics/cmd/things/${thingName.thingName}/vending`);
@@ -44,6 +42,7 @@ export async function POST(request: Request) {
       headers: signedRequest.headers,
       body: signedRequest.body,
     });
+    console.log(response.ok, "Actualizacion del estado exitosa");
 
     if (!response.ok) {
       throw new Error(`AWS IoT error: ${response.statusText}`);
