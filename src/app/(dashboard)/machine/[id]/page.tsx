@@ -4,6 +4,7 @@ import Machine from "@/components/machine/Machine";
 import MachineTab from "@/components/machine/MachineTab";
 import ButtonDashboard from "@/components/ui/ButtonDashboard";
 import ButtonSendMoney from "@/components/ui/ButtonSendMoney";
+import ButtonUpDate from "@/components/ui/ButtonUpDate";
 import type { MachineProps } from '@/interfaces/Machine'; // Import the interface
 import { useQuery } from '@tanstack/react-query'; // Import useQuery
 import { useParams } from 'next/navigation'; // Import useParams
@@ -47,6 +48,7 @@ const MachineDetailPage = () => {
       <div className="flex justify-center gap-2 max-sm:flex-col">
       <ButtonDashboard/>
       <ButtonSendMoney thingName={id}/>
+      <ButtonUpDate thingName={id}/>
       </div>
       <div className="flex flex-col md:flex-row items-start justify-center gap-8 w-full mx-auto"> {/* Adjusted layout for side-by-side */} 
         {isLoading && <div className="text-white text-center py-10">Loading machine details...</div>}
