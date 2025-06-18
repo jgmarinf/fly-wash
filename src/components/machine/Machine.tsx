@@ -75,9 +75,9 @@ const Machine = ({ thingName, machineData: propMachineData }: { thingName?: stri
     : [];
 
   const ventas = bombas.reduce((sum, bomba) => {
-    const countSale = safeParseInt(bomba.CountSale);
+    const recordCount = safeParseInt(bomba.RecordCount);
     const creditCost = safeParseInt(bomba.CreditCost);
-    return sum + (countSale * creditCost);
+    return sum + (recordCount * creditCost);
   }, 0);
 
   const registros = bombas.reduce((sum, bomba) => {
