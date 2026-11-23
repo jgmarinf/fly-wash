@@ -4,6 +4,18 @@ import { jwtVerify } from 'jose';
 const PUBLIC_PATHS = ["/auth/login", "/_next", "/favicon.ico", "/auth/new-account"];
 const JWT_SECRET = process.env.JWT_SECRET;
 
+function redirectToLogin(req: NextRequest, clearToken = false) {
+  const loginUrl = req.nextUrl.clone();
+  loginUrl.pathname = "/auth/login";
+  const response = NextResponse.redirect(loginUrl);
+  // Elimina cookies inválidas (por ejemplo `token=undefined`) para evitar
+  // un bucle de redirección que deja al usuario sin poder iniciar sesión.
+  if (clearToken) {
+    response.cookies.delete("token");
+  }
+  return response;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -15,19 +27,14 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value || req.headers.get("Authorization")?.replace("Bearer ", "");
 
   if (!token || !JWT_SECRET) {
-    const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = "/auth/login";
-    return NextResponse.redirect(loginUrl);
+    return redirectToLogin(req);
   }
 
   try {
     await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
     return NextResponse.next();
   } catch  {
-
-    const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = "/auth/login";
-    return NextResponse.redirect(loginUrl);
+    return redirectToLogin(req, true);
   }
 }
 

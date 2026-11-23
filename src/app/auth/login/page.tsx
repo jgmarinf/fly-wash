@@ -36,7 +36,8 @@ export default function Login() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        credentials: "same-origin",
+        body: JSON.stringify({ ...form, email: form.email.trim() })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -44,8 +45,9 @@ export default function Login() {
         setLoading(false);
         return;
       }
-      // Store JWT in cookie (client-side example, for demo only)
-      document.cookie = `token=${data.token}; path=/;`;
+      // La cookie httpOnly `token` la establece el servidor en la respuesta.
+      // No escribirla desde JavaScript: `data.token` no existe y crearía
+      // una cookie `token=undefined` que bloquea el middleware (bucle de login).
       window.location.href = "/";
     } catch  {
       setErrors({ ...errors, general: "Error de red o del servidor" });
@@ -57,11 +59,16 @@ export default function Login() {
   return (
     <div className="flex flex-col min-h-screen pt-32 sm:pt-52">
       <h1 className="text-4xl mb-5">Ingresar</h1>
-      <form className="flex flex-col" onSubmit={handleSubmit}>
+      <form className="flex flex-col" onSubmit={handleSubmit} noValidate>
         <label htmlFor="email">Correo electronico</label>
         <input
           type="email"
           id="email"
+          autoComplete="email"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           value={form.email}
           onChange={handleChange}
           className="px-5 py-2 border bg-gray-200 rounded mb-1"
@@ -71,6 +78,7 @@ export default function Login() {
         <input
           type="password"
           id="password"
+          autoComplete="current-password"
           value={form.password}
           onChange={handleChange}
           className="px-5 py-2 border bg-gray-200 rounded mb-1"
