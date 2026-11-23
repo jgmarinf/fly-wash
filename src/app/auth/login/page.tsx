@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 
 const schema = z.object({
@@ -12,6 +12,52 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "", general: "" });
   const [loading, setLoading] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugInfo, setDebugInfo] = useState("");
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("debug") !== "1") return;
+    setDebugMode(true);
+    document.cookie = "probe=1; path=/; SameSite=Lax";
+    setDebugInfo(
+      JSON.stringify(
+        {
+          userAgent: navigator.userAgent,
+          cookieEnabled: navigator.cookieEnabled,
+          cookies: document.cookie,
+          hydrated: true,
+        },
+        null,
+        2
+      )
+    );
+  }, []);
+
+  const handleDebugLogin = async () => {
+    const info: Record<string, unknown> = {
+      userAgent: navigator.userAgent,
+      cookieEnabled: navigator.cookieEnabled,
+      cookiesBefore: document.cookie,
+    };
+    try {
+      document.cookie = "probe=2; path=/; SameSite=Lax";
+      info.cookiesAfterWrite = document.cookie;
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ ...form, email: form.email.trim() }),
+      });
+      info.loginStatus = res.status;
+      info.loginBody = await res.text();
+      const me = await fetch("/api/auth/me", { credentials: "same-origin" });
+      info.meStatus = me.status;
+      info.meBody = await me.text();
+    } catch (error) {
+      info.error = String(error);
+    }
+    setDebugInfo(JSON.stringify(info, null, 2));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.id]: e.target.value });
@@ -101,6 +147,19 @@ export default function Login() {
           Crear una cuenta
         </Link>
       </form>
+      {debugMode && (
+        <div className="mt-5 rounded border border-gray-600 bg-black p-3 text-xs text-green-400">
+          <p className="mb-2 font-bold">Diagnóstico de login</p>
+          <button
+            type="button"
+            onClick={handleDebugLogin}
+            className="btn-secondary mb-2 text-xs"
+          >
+            Probar login (debug)
+          </button>
+          <pre className="whitespace-pre-wrap break-all">{debugInfo}</pre>
+        </div>
+      )}
     </div>
   );
 }
