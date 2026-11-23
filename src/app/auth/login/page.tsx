@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 
 const schema = z.object({
@@ -12,52 +12,6 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "", general: "" });
   const [loading, setLoading] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
-  const [debugInfo, setDebugInfo] = useState("");
-
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("debug") !== "1") return;
-    setDebugMode(true);
-    document.cookie = "probe=1; path=/; SameSite=Lax";
-    setDebugInfo(
-      JSON.stringify(
-        {
-          userAgent: navigator.userAgent,
-          cookieEnabled: navigator.cookieEnabled,
-          cookies: document.cookie,
-          hydrated: true,
-        },
-        null,
-        2
-      )
-    );
-  }, []);
-
-  const handleDebugLogin = async () => {
-    const info: Record<string, unknown> = {
-      userAgent: navigator.userAgent,
-      cookieEnabled: navigator.cookieEnabled,
-      cookiesBefore: document.cookie,
-    };
-    try {
-      document.cookie = "probe=2; path=/; SameSite=Lax";
-      info.cookiesAfterWrite = document.cookie;
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ ...form, email: form.email.trim() }),
-      });
-      info.loginStatus = res.status;
-      info.loginBody = await res.text();
-      const me = await fetch("/api/auth/me", { credentials: "same-origin" });
-      info.meStatus = me.status;
-      info.meBody = await me.text();
-    } catch (error) {
-      info.error = String(error);
-    }
-    setDebugInfo(JSON.stringify(info, null, 2));
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.id]: e.target.value });
@@ -117,7 +71,7 @@ export default function Login() {
           spellCheck={false}
           value={form.email}
           onChange={handleChange}
-          className="px-5 py-2 border bg-gray-200 rounded mb-1"
+          className="px-5 py-2 border bg-gray-200 rounded mb-1 text-black"
         />
         {errors.email && <span className="text-red-500 text-sm mb-2">{errors.email}</span>}
         <label htmlFor="password">Contraseña</label>
@@ -127,7 +81,7 @@ export default function Login() {
           autoComplete="current-password"
           value={form.password}
           onChange={handleChange}
-          className="px-5 py-2 border bg-gray-200 rounded mb-1"
+          className="px-5 py-2 border bg-gray-200 rounded mb-1 text-black"
         />
         {errors.password && <span className="text-red-500 text-sm mb-2">{errors.password}</span>}
         <button
@@ -140,26 +94,13 @@ export default function Login() {
         {errors.general && <span className="text-red-500 text-sm mb-2">{errors.general}</span>}
         <div className="flex items-center my-5">
           <div className="flex-1 border-t border-gray-500"></div>
-          <div className="px-2 text-sm text-gray-800">0</div>
+          <div className="px-2 text-sm text-gray-500">0</div>
           <div className="flex-1 border-t border-gray-500"></div>
         </div>
         <Link href="/auth/new-account" className="btn-secondary text-center">
           Crear una cuenta
         </Link>
       </form>
-      {debugMode && (
-        <div className="mt-5 rounded border border-gray-600 bg-black p-3 text-xs text-green-400">
-          <p className="mb-2 font-bold">Diagnóstico de login</p>
-          <button
-            type="button"
-            onClick={handleDebugLogin}
-            className="btn-secondary mb-2 text-xs"
-          >
-            Probar login (debug)
-          </button>
-          <pre className="whitespace-pre-wrap break-all">{debugInfo}</pre>
-        </div>
-      )}
     </div>
   );
 }
